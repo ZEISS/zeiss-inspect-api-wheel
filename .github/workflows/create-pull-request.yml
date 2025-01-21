@@ -1,5 +1,5 @@
 # see https://github.com/marketplace/actions/github-action-for-creating-pull-requests
-name: Update Python API Documentation 
+name: Update Python API Wheel
 on:
   push:
     branches:
