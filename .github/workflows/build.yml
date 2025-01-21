@@ -28,7 +28,6 @@ jobs:
 
       - name: Build wheels
         run: |
-          #python setup.py bdist_wheel
           python -m build --wheel --outdir dist/ .
 
       - name: Upload wheels
