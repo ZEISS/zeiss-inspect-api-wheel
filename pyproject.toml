@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zeiss_inspect_api"
+version = "2026.0.0.4494"
+authors = [
+  { name="Carl Zeiss GOM Metrology GmbH", email="info.optical.metrology@zeiss.com" },
+]
+description = "ZEISS Inspect API"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://zeissiqs.github.io"
