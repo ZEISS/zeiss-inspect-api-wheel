@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - apiwheel-update-main
   pull_request:
   workflow_dispatch:
 
@@ -27,7 +28,6 @@ jobs:
 
       - name: Build wheels
         run: |
-          #python setup.py bdist_wheel
           python -m build --wheel --outdir dist/ .
 
       - name: Upload wheels
