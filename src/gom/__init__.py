@@ -730,6 +730,11 @@ class Resource:
         for resource in Resource.__opened_resources:
             resource.close()
 
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        Resource.__opened_resources.append(instance)
+        return instance
+
     def __init__(self, path):
         """Constructor"""
         self._path = path
@@ -737,7 +742,6 @@ class Resource:
         self._mem_size = 0
         self._mem_lock = False
         self._mm = None
-        Resource.__opened_resources.append(self)
 
     def __del__(self):
         self.close()

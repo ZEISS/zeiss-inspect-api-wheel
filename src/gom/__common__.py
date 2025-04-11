@@ -27,6 +27,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+import re
+
 from enum import Enum
 from typing import Any, Callable
 
@@ -115,23 +117,36 @@ class Contribution:
     Base class for all contributions/extensions which can be registered to the application
     '''
 
-    def __init__(self, name: str, category: str, callables: dict[str, Callable], properties: dict[str, Any]):
+    def __init__(self, id: str, category: str, description: str, callables: dict[str, Callable], properties: dict[str, Any]):
         '''
         Constructor
 
-        @param name       Human readable type name for the contribution
-        @param category   Contribution category
-        @param callables  Dictionary of the callables of the contribution
-        @param properties Dictionary of the property values of the contribution
+        @param id          Unique contribution id, like 'special_point'
+        @param category    Element category, like 'scriptedelement.actual'
+        @param description Human readable property name
+        @param callables   Dictionary of the callables of the contribution
+        @param properties  Dictionary of the property values of the contribution
         '''
-        self.name = name
+        self.id = id
         self.category = category
+        self.description = description
         self.callables = callables
         self.properties = properties
 
+        name_pattern = r'^[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)*$'
+
+        if not re.fullmatch(name_pattern, self.id):
+            raise RuntimeError(f'Illegal id format {self.id}')
+
+        if not re.fullmatch(name_pattern, self.category):
+            raise RuntimeError(f'Illegal category format {self.category}')
+
+        if not self.description.strip():
+            raise RuntimeError('Description must not be empty')
+
     def get_declaration(self):
-        return {'id': self.__class__.__name__,
-                'name': self.name,
+        return {'id': self.id,
                 'category': self.category,
+                'description': self.description,
                 'callables': self.callables,
                 'properties': self.properties}

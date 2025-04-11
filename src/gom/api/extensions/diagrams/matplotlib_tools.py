@@ -44,7 +44,7 @@ def setup_plot(plt, view):
     This function creates a matplotlib figure matching the view setup of a scripted diagram rendering view
 
     It can be used to construct a drawing foundation for matplotlib outputs which will fit well into
-    the applications view and reporting snapshots.
+    the application's view and reporting snapshots.
 
     @param plt  Matplotlib instance which should be setup 
     @param view View configuration
