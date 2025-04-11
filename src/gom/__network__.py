@@ -27,7 +27,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-import inspect
 import pickle
 import threading
 import traceback
@@ -219,21 +218,8 @@ class Connection:
                 elif message_type == Connection.Attribute.Type.CALL:
 
                     func = reply[Connection.Attribute.VALUE]
-                    args = reply[Connection.Attribute.PARAMS]
-                    kwargs = reply[Connection.Attribute.KEYS]
-
-                    #
-                    # For the contribution scheme, calling a contribution function with more 'kwargs'
-                    # arguments as the functions named parameters must be legal, as these parameter names
-                    # can stem directly from a user defined script dialog result set.
-                    #
-                    params = inspect.signature(func).parameters
-
-                    has_args = any(p.kind == inspect.Parameter.VAR_POSITIONAL for p in params.values())
-                    has_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
-
-                    if not (has_args or has_kwargs):
-                        kwargs = {k: v for k, v in kwargs.items() if k in params}
+                    params = reply[Connection.Attribute.PARAMS]
+                    keys = reply[Connection.Attribute.KEYS]
 
                     try:
                         #
@@ -243,7 +229,7 @@ class Connection:
                         #
                         gom.__state__.call_function_active += 1
 
-                        result = func(*args, **kwargs)
+                        result = func(*params, **keys)
 
                         self.send({Connection.Attribute.TYPE: Connection.Attribute.Type.RESULT,
                                    Connection.Attribute.ID: message_id,

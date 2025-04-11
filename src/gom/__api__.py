@@ -36,7 +36,7 @@ import warnings
 
 import gom
 import gom.__common__
-from gom.__common__ import Contribution, Request
+from gom.__common__ import Request
 
 
 __encoder__ = None
@@ -54,7 +54,6 @@ class GomApiRegistry:
 
     def __init__(self):
         self._functions = []
-        self._contributions = []
         self._services = []
 
     def register_function(self, func):
@@ -63,16 +62,6 @@ class GomApiRegistry:
         lead to correct service registration.
         '''
         self._functions.append(func)
-
-    def register_contribution(self, contribution):
-        '''
-        Register API contribution
-        '''
-        if not issubclass(contribution, Contribution):
-            raise RuntimeError(
-                f'Class {contribution} registered as a contribution must be derived from gom.__common__.Contribution')
-
-        self._contributions.append(contribution())
 
     def register_service(self, service):
         '''
@@ -274,7 +263,7 @@ class Encoder(object):
             #
             # GOMAPI objects can JSON encode themselves and implement a method for that
             #
-            if (hasattr(obj, "__api_json__") and obj.__api_json__ is not None):
+            if (hasattr(obj, "__api_json__")):
                 return obj.__api_json__()
 
             #

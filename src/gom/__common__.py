@@ -28,7 +28,6 @@
 #
 
 from enum import Enum
-from typing import Any, Callable
 
 # Connection to the ZEISS Inspect application
 __connection__ = None
@@ -108,30 +107,3 @@ class Request (Enum):
     TEST_3 = 1003
     TEST_4 = 1004
     TEST_5 = 1005
-
-
-class Contribution:
-    '''
-    Base class for all contributions/extensions which can be registered to the application
-    '''
-
-    def __init__(self, name: str, category: str, callables: dict[str, Callable], properties: dict[str, Any]):
-        '''
-        Constructor
-
-        @param name       Human readable type name for the contribution
-        @param category   Contribution category
-        @param callables  Dictionary of the callables of the contribution
-        @param properties Dictionary of the property values of the contribution
-        '''
-        self.name = name
-        self.category = category
-        self.callables = callables
-        self.properties = properties
-
-    def get_declaration(self):
-        return {'id': self.__class__.__name__,
-                'name': self.name,
-                'category': self.category,
-                'callables': self.callables,
-                'properties': self.properties}

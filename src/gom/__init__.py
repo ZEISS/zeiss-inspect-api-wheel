@@ -190,7 +190,7 @@ class Indexable (object):
 
 class Item (object):
     '''
-    \brief An object of this class represents a single item in the applications item space
+    \briefAn object of this class represents a single item in the applications item space
 
     Each Tom::ScriptObject has a unique item id, like 'I#!1234', which is used to
     link an item to the corresponding C++ object.
@@ -730,6 +730,11 @@ class Resource:
         for resource in Resource.__opened_resources:
             resource.close()
 
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        Resource.__opened_resources.append(instance)
+        return instance
+
     def __init__(self, path):
         """Constructor"""
         self._path = path
@@ -737,7 +742,6 @@ class Resource:
         self._mem_size = 0
         self._mem_lock = False
         self._mm = None
-        Resource.__opened_resources.append(self)
 
     def __del__(self):
         self.close()
@@ -897,7 +901,6 @@ def apifunction(func):
     other modules.
     '''
     gom.__api__.__api_registry__.register_function(func)
-    return func
 
 
 def apicontribution(contribution):
@@ -910,10 +913,9 @@ def apicontribution(contribution):
     @param contribution Contribution class definition to register into the API
     '''
     gom.__api__.__api_registry__.register_contribution(contribution)
-    return contribution
 
 
-def run_api(name: str = None, endpoint: str = None):
+def run_api(name=None, endpoint=None):
     '''
     Run this script as an API
 
@@ -923,21 +925,16 @@ def run_api(name: str = None, endpoint: str = None):
 
     @attention Pass the 'name' and 'endpoint' parameter *only* for debugging purposes ! See documentation for details.
 
-    @param name          Service name. This is mainly a debugging feature at the moment and is usually not specified
-                         but read from the services 'metainfo.json' entry.
-    @param endpoint      Service API endpoint. This is mainly a debugging feature at the moment and is usually not specified
-                         but read from the services 'metainfo.json' entry.
-    @param contributions Application contributions which shall be registered
+    @param name     Service name. This is mainly a debugging feature at the moment and is usually not specified
+                    but read from the services 'metainfo.json' entry.
+    @param endpoint Service API endpoint. This is mainly a debugging feature at the moment and is usually not specified
+                    but read from the services 'metainfo.json' entry.
     '''
     gom.log.info(f'Service starting')
 
-    contribution_decl = []
-    for c in gom.__api__.__api_registry__._contributions:
-        contribution_decl.append(c.get_declaration())
-
     gom.__common__.__connection__.request(
         Request.RUNAPI, {'declaration': gom.__api__.__api_registry__.get_declaration(),
-                         'name': name if name else '', 'endpoint': endpoint if endpoint else '', 'contributions': contribution_decl})
+                         'name': name if name else '', 'endpoint': endpoint if endpoint else ''})
 
     gom.log.info(f'Service shutdown')
 
