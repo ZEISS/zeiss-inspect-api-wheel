@@ -129,8 +129,10 @@ class AddOn (gom.__api__.Object):
     @brief Return the list of files contained in the add-on
     @version 1
     
-    This function returns the list of files and directories in an add-on. These path names can
-    be used to read or write/modify add-on content.
+    This function returns the list of files in an add-on. These path names can be used to
+    read or write/modify add-on content. This is subject to the permission system, so the
+    content of protected add-ons cannot be read at all and just the add-on a script originates
+    from can be modified via this API.
     
     Please note that the list of files can only be obtained for add-ons which are currently not
     in edit mode ! An add-on in edit mode is unzipped and the `get_file ()` function will return
@@ -141,16 +143,19 @@ class AddOn (gom.__api__.Object):
     
     ```
     for addon in gom.api.addons.get_installed_addons():
-      # Edited add-ons are file system based and must be accessed via file system functions
-      if addon.is_edited():
-        for root, dirs, files in os.walk(addon.get_file ()):
-          for file in files:
-            print(os.path.join(root, file))
+      # Protected add-ins cannot be read at all
+      if not addon.is_protected():
     
-      # Finished add-ons can be accessed via this function
-      else:
-        for file in addon.get_file_list():
-          print (file)
+        # Edited add-ons are file system based and must be accessed via file system functions
+        if addon.is_edited():
+          for root, dirs, files in os.walk(addon.get_file ()):
+            for file in files:
+              print(os.path.join(root, file))
+    
+        # Finished add-ons can be accessed via this function
+        else:
+          for file in addon.get_file_list():
+            print (file)
     ```
     
     @return List of files in that add-on (full path)
@@ -177,13 +182,13 @@ class AddOn (gom.__api__.Object):
 
   def exists(self, path:str) -> bool:
     '''
-    @brief Check if the given file or directory exists in an add-on
+    @brief Check if the given file exists in an add-on
     @version 1
     
     This function checks if the given file exists in the add-on
     
     @param path File path as retrieved by 'gom.api.addons.AddOn.get_file_list ()'
-    @return 'true' if a file or directory with that name exists in the add-on
+    @return 'true' if a file with that name exists in the add-on
     '''
     return self.__call_method__('exists', path)
 
