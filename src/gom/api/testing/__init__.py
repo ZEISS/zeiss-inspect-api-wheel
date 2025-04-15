@@ -3,6 +3,10 @@
 #
 # @brief API with testing and verification functions
 # 
+# ```{caution}
+# This API is for internal debugging purposes ! Its content format may change arbitrarily !
+# ```
+# 
 # This API provides various functions which can be of use when testing and developing
 # API features.
 #
@@ -61,7 +65,7 @@ def reflect(content:Any) -> Any:
   result = gom.api.testing.reflect ({'a': [1, 2, 3], 'b':('foo', 'bar')})
   ```
   
-  @param content The value to be reflected
+  @param value The value to be reflected
   @return Reflected value
   '''
   return gom.__api__.__call_function__(content)
@@ -84,4 +88,46 @@ def generate_test_object(content:str) -> TestObject:
   @return Test object instance
   '''
   return gom.__api__.__call_function__(content)
+
+def get_env(name:str) -> str:
+  '''
+  @brief Return main process environment variable value
+  @version 1
+  
+  Return the value of the environment variable with the given name. If the variable does not
+  exist, an empty string is returned. The function is used for testing of the environment variable
+  sharing properties between ZEISS INSPECT and its python processes. Please use the native python
+  functions for environment variable access instead.
+  
+  **Example:**
+  
+  ```
+  value = gom.api.testing.get_env('MY_ENVIRONMENT_VARIABLE')
+  ```
+  
+  @param name Name of the environment variable to read
+  @return Environment variable value
+  '''
+  return gom.__api__.__call_function__(name)
+
+def set_env(name:str, value:str) -> str:
+  '''
+  @brief Set main process environment variable value
+  @version 1
+  
+  Set the value of the environment variable with the given name. The function is used for
+  testing of the environment variable sharing properties between ZEISS INSPECT and its
+  python processes. Please use the native python functions for environment variable
+  manipulation instead.
+  
+  **Example:**
+  
+  ```
+  gom.api.testing.set_env('MY_ENVIRONMENT_VARIABLE', 'some_value')
+  ```
+  
+  @param name Name of the environment variable to set
+  @param value New value of the environment variable
+  '''
+  return gom.__api__.__call_function__(name, value)
 

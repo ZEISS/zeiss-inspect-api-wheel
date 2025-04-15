@@ -175,6 +175,33 @@ class AddOn (gom.__api__.Object):
     '''
     return self.__call_method__('get_script_list')
 
+  def get_version(self) -> str:
+    '''
+    @brief Return the version of the add-on
+    @version 1
+    
+    @return Add-on version in string format
+    '''
+    return self.__call_method__('get_version')
+
+  def get_required_software_version(self) -> str:
+    '''
+    @brief Return the minimum version of the ZEISS INSPECT software required to use this add-on
+    @version 1
+    
+    By default, an add-on is compatible with the ZEISS INSPECT software version it was created in and
+    all following software version. This is the case because it can be assumed that this add-on is
+    tested with that specific software version, not with any prior version, leading to a minimum requirement.
+    On the other hand, the software version where an add-on then later will break because of incompatibilities
+    cannot be foreseen at add-on creation time. Thus, it is also assumed that a maintainer cares for an
+    add-on and updates it to the latest software version if necessary. There cannot be a "works until" entry
+    in the add-on itself, because this would require to modify already released version as soon as this specific
+    version which breaks the add-on becomes known.
+    
+    @return Addon version in string format
+    '''
+    return self.__call_method__('get_required_software_version')
+
   def exists(self, path:str) -> bool:
     '''
     @brief Check if the given file or directory exists in an add-on

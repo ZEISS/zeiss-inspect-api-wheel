@@ -70,7 +70,6 @@ class Types:
                                                                                 'kwargs': kwargs})
         self.__dict__['__args__'] = params['args']
         self.__dict__['__kwargs__'] = params['kwargs']
-        self.__dict__['__locals__'] = {}
 
     #
     # Attribute requesting function for registered types
@@ -82,9 +81,6 @@ class Types:
 
         if key in self.__kwargs__:
             return self.__kwargs__[key]
-
-        if key in self.__dict__['__locals__']:
-            return self.__dict__['__locals__'][key]
 
         return gom.__common__.__connection__.request(Request.TYPE_GETATTR, {'type': type(self).__id__,
                                                                             'args': self.__args__,
@@ -130,8 +126,6 @@ class Types:
 
         if key in self.__args__:
             self.__kwargs__[key] = value
-
-        self.__dict__['__locals__'][key] = value
 
         gom.__common__.__connection__.request(Request.TYPE_SETATTR, {'type': type(self).__id__,
                                                                      'args': self.__args__,
@@ -273,7 +267,6 @@ class Types:
 
         obj.__dict__['__args__'] = list(args)
         obj.__dict__['__kwargs__'] = kwargs
-        obj.__dict__['__locals__'] = {}
 
         return obj
 

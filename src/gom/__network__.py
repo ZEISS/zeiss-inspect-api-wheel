@@ -222,19 +222,6 @@ class Connection:
                     args = reply[Connection.Attribute.PARAMS]
                     kwargs = reply[Connection.Attribute.KEYS]
 
-                    #
-                    # For the contribution scheme, calling a contribution function with more 'kwargs'
-                    # arguments as the functions named parameters must be legal, as these parameter names
-                    # can stem directly from a user defined script dialog result set.
-                    #
-                    params = inspect.signature(func).parameters
-
-                    has_args = any(p.kind == inspect.Parameter.VAR_POSITIONAL for p in params.values())
-                    has_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
-
-                    if not (has_args or has_kwargs):
-                        kwargs = {k: v for k, v in kwargs.items() if k in params}
-
                     try:
                         #
                         # While a client site call is active, exceptions must not be passed via
@@ -256,13 +243,23 @@ class Connection:
 
                         e_type, e_value, e_tb = e.__class__, e, e.__traceback__
                         e_tb = gom.__tools__.filter_exception_traceback(e_tb)
-                        e_value = f'{str(e_value)}\n\nTraceback (most recent call last):\n{e_tb}'
+                        e_text = f'{str(e_value)}\n\nTraceback (most recent call last):\n{e_tb}'
+
+                        #
+                        # If the exception is a GOM break exception, the type must be set to the
+                        # GOM break exception type. The API design does not support forwarding
+                        # the error code / error message tuple as used in the framework, so a bit
+                        # of text comparison is needed here.
+                        #
+                        e_name = type(e).__name__
+                        if str(e_value).startswith("GAPP-0011"):
+                            e_name = gom.BreakError.__module__ + '.' + gom.BreakError.__name__
 
                         self.send({Connection.Attribute.TYPE: Connection.Attribute.Type.RESULT,
                                    Connection.Attribute.ID: message_id,
                                    Connection.Attribute.STATE: False,
                                    Connection.Attribute.VALUE: [
-                                       type(e).__name__, traceback.format_exc(), pickle.dumps((e_type, e_value))]
+                                       e_name, traceback.format_exc(), pickle.dumps((e_type, e_text))]
                                    }, context)
                     finally:
                         gom.__state__.call_function_active -= 1
@@ -288,6 +285,11 @@ class Connection:
                     raise IndexError(error_log)
                 elif error_type == Connection.Error.PYTHON:
                     e_type, e_value = pickle.loads(error_data)
+                    #
+                    # gom.RequestError has a different signature compared to Python built-in error, thus we need to process it separately.
+                    #
+                    if e_type == gom.RequestError:
+                        raise gom.RequestError(error_description, error_code, e_value)
                     raise e_type(f'{e_value}\nCalled from here:')
                 else:
                     raise gom.RequestError(description=error_description, error_code=error_code, error_log=error_log)
