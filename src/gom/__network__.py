@@ -100,7 +100,8 @@ class Connection:
         VALUE = 'value'
         STATE = 'state'
         PARAMS = 'params'
-        KEYS = 'keys'
+        ARGS = 'args'
+        KWARGS = 'kwargs'
         ERROR = 'error'
         DESCRIPTION = 'description'
         CODE = 'code'
@@ -219,8 +220,8 @@ class Connection:
                 elif message_type == Connection.Attribute.Type.CALL:
 
                     func = reply[Connection.Attribute.VALUE]
-                    args = reply[Connection.Attribute.PARAMS]
-                    kwargs = reply[Connection.Attribute.KEYS]
+                    args = reply[Connection.Attribute.ARGS]
+                    kwargs = reply[Connection.Attribute.KWARGS]
 
                     try:
                         #
