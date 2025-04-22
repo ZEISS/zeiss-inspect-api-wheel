@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zeiss_inspect_api"
-version = "2025.3.0.384"
+version = "2025.3.0.420"
 authors = [
   { name="Carl Zeiss GOM Metrology GmbH", email="info.optical.metrology@zeiss.com" },
 ]
@@ -12,6 +12,7 @@ description = "ZEISS INSPECT API"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+  "websocket-client"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
