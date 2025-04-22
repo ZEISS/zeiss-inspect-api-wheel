@@ -38,12 +38,62 @@ emitted from the JavaScript renderer and processed by the Python script.
 import gom
 import gom.__common__
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict, List, Any, final
 
 
 class ScriptedView (ABC, gom.__common__.Contribution):
+
+    class Event(str, Enum):
+        '''
+        Event types passed to the `event ()` function
+
+        - `INITIALIZED`: Sent when the view has been initialized
+        '''
+        INITIALIZED = "view::initialized"
+
+    def __init__(self, id: str, viewtype: str, description: str, functions: List[Any] = [], properties: Dict[str, Any] = {}, callables: Dict[str, Any] = {}):
+        '''
+        Constructor
+
+        @param id          Globally unique scripted view id string
+        @param description Human readable name, will appear in menus etc.
+        @param renderer    Path to the JavaScript renderer script
+        @param functions   List of functions that can be called by the JavaScript renderer
+        @param properties  Additional properties
+        @param bundle      Packages NPM bundle this scripted view related on
+        '''
+
+        if not id:
+            raise ValueError('id must be set')
+        if not description:
+            raise ValueError('description must be set')
+
+        super().__init__(id=id,
+                         category='scriptedviews',
+                         description=description,
+                         callables={
+                             'event': self.event
+                         } | callables,
+                         properties={
+                             'functions': functions,
+                             'viewtype': viewtype
+                         } | properties)
+
+    def event(self, event: str, args: Any):
+        '''
+        @brief Event handler
+
+        This method is called by the JavaScript renderer when an event is triggered.
+
+        @param event Event name
+        @param args  Event arguments
+        '''
+        pass
+
+
+class ScriptedCanvas (ScriptedView):
     '''
     @brief This class is the base class for all scripted views
 
@@ -235,24 +285,80 @@ class ScriptedView (ABC, gom.__common__.Contribution):
             raise ValueError('description must be set')
 
         super().__init__(id=id,
-                         category='scriptedviews',
+                         viewtype="canvas",
                          description=description,
-                         callables={
-                             'event': self.event
-                         },
+                         functions=functions,
                          properties={
-                             'functions': functions,
                              'renderer': renderer,
                              'bundle': bundle
                          } | properties)
 
-    def event(self, event: str, args: Any):
-        '''
-        @brief Event handler
 
-        This method is called by the JavaScript renderer when an event is triggered.
+class ScriptedEditor (ScriptedView):
 
-        @param event Event name
-        @param args  Event arguments
+    class DataTypes(str, Enum):
         '''
-        pass
+        Data types that can be returned by get_data_types () and are used to determine the load mechanism for each file of an app content
+
+        - `NONE`: Do **not** load data from the file
+        - `JSON`: Load data as JSON format, i.e., as a 'dict'
+        - `STRING`: Load data as plain string
+        - `BYTES`: Load data as pure bytes array
+        '''
+        NONE = "datatype::none"
+        JSON = "datatype::json"
+        STRING = "datatype::string"
+        BYTES = "datatype::bytes"
+
+    def __init__(self, id: str, content_category: str, description: str, bundle: str, stylesheet: str = "", functions: List[Any] = [], properties: Dict[str, Any] = {}):
+
+        super().__init__(id=id,
+                         description=description,
+                         viewtype="editor",
+                         functions=functions,
+                         properties={
+                             'content_category': content_category,
+                             'bundle': bundle,
+                             'stylesheet': stylesheet
+                         } | properties,
+                         callables={
+                             'get_data_types': self.get_data_types,
+                             'prepare_data': self.prepare_data,
+                             'extract_data': self.extract_data
+                         })
+
+    def get_data_types(self, content: str, files: List[str]) -> List[tuple[str, DataTypes]]:
+        '''
+        Determine the loading type for each app content file.
+
+        @param content Name of App Content
+        @param files List of files belonging to this App Content
+
+        @return List of tuples matching each filename to a DataTypes
+        '''
+        return [(file, ScriptedEditor.DataTypes.NONE) for file in files]
+
+    def prepare_data(self, content: str, data: List[tuple[str, Any]], readonly: bool) -> List[Dict]:
+        '''
+        Prepare JSON style data from app contents.
+
+        @param content Name of App Content
+        @param data List of tuples. Each tuple holds the filename and the data in the format specified by get_data_types ().
+        @param readonly Whether the editor is opened in read-only mode
+
+        @return List of dictionaries (JSON style) for each initial file.
+        '''
+        return [{"data": entry} for (file, entry) in data]
+
+    def extract_data(self, content: str, json: List[Any]) -> List[tuple[str, Any, DataTypes]]:
+        '''
+        Inverse of self.prepare_data()
+
+        This function processes the data generated by the editor and returns it in a format that can be saved to the files.
+
+        @param content Name of App Content
+        @param json List of data created by the editor (one entry per file).
+
+        @return List of tuples. Each tuples holds the filename, the processed data to save and the DataTypes of the file to save.
+        '''
+        return []
