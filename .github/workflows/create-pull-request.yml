@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - apiwheel-update-main
+      - apiwheel-update-2026
+      - apiwheel-update-2025
 jobs:
   UpdatePythonApiDoc:
     runs-on: ubuntu-latest
@@ -19,6 +21,12 @@ jobs:
           echo "Current branch: ${GITHUB_REF#refs/*/}"
           if [[ ${GITHUB_REF#refs/*/} == "apiwheel-update-main" ]]; then
             TARGET_BRANCH="main"
+          fi
+          if [[ ${GITHUB_REF#refs/*/} == "apiwheel-update-2026" ]]; then
+            TARGET_BRANCH="2026"
+          fi
+          if [[ ${GITHUB_REF#refs/*/} == "apiwheel-update-2025" ]]; then
+            TARGET_BRANCH="2025"
           fi
           echo "Target branch: ${TARGET_BRANCH}"
           echo "target_branch=${TARGET_BRANCH}" >> $GITHUB_OUTPUT
