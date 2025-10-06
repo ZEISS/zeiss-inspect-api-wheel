@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - "2026"
+      - "2025"
       - apiwheel-update-main
   pull_request:
   workflow_dispatch:
