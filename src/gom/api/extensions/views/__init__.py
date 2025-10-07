@@ -53,7 +53,19 @@ class ScriptedView (ABC, gom.__common__.Contribution):
         '''
         INITIALIZED = "view::initialized"
 
-    def __init__(self, id: str, viewtype: str, description: str, functions: List[Any] = [], properties: Dict[str, Any] = {}, callables: Dict[str, Any] = {}):
+    class Signal(str, Enum):
+        '''
+        Identifier for SW signals that the view can be connected to
+
+        - `DATA_CHANGED`: Emitted when any project related data changes
+        - `SELECTION_CHANGED`: Emitted when the selection in the Project explorer changes
+        - `CONFIG_CHANGED`: Emitted when the software preferences are applied
+        '''
+        DATA_CHANGED = "signal::data"
+        SELECTION_CHANGED = "signal::selection"
+        CONFIG_CHANGED = "signal::config"
+
+    def __init__(self, id: str, viewtype: str, description: str, functions: List[Any] = [], properties: Dict[str, Any] = {}, callables: Dict[str, Any] = {}, signals: List[str] = []):
         '''
         Constructor
 
@@ -78,7 +90,8 @@ class ScriptedView (ABC, gom.__common__.Contribution):
                          } | callables,
                          properties={
                              'functions': functions,
-                             'viewtype': viewtype
+                             'viewtype': viewtype,
+                             'signals': signals
                          } | properties)
 
     def event(self, event: str, args: Any):
@@ -187,7 +200,7 @@ class ScriptedCanvas (ScriptedView):
     :caption: Emitting events from the JavaScript renderer
 
     function renderer () {
-        gom.bridge.__events__.emit('view::initialized', 'Hello World');
+        gom.emitEvent('my::custom::event', 'Hello World');
     }
     ```
 
@@ -310,12 +323,13 @@ class ScriptedEditor (ScriptedView):
         STRING = "datatype::string"
         BYTES = "datatype::bytes"
 
-    def __init__(self, id: str, content_category: str, description: str, bundle: str, stylesheet: str = "", functions: List[Any] = [], properties: Dict[str, Any] = {}):
+    def __init__(self, id: str, content_category: str, description: str, bundle: str, stylesheet: str = "", functions: List[Any] = [], signals: List[str] = [], properties: Dict[str, Any] = {}):
 
         super().__init__(id=id,
                          description=description,
                          viewtype="editor",
                          functions=functions,
+                         signals=signals,
                          properties={
                              'content_category': content_category,
                              'bundle': bundle,
@@ -362,3 +376,18 @@ class ScriptedEditor (ScriptedView):
         @return List of tuples. Each tuples holds the filename, the processed data to save and the DataTypes of the file to save.
         '''
         return []
+
+
+class ScriptedUtilityView (ScriptedView):
+
+    def __init__(self, id: str, description: str, bundle: str, stylesheet: str = "", functions: List[Any] = [], signals: List[str] = [], properties: Dict[str, Any] = {}):
+
+        super().__init__(id=id,
+                         description=description,
+                         viewtype="utility",
+                         functions=functions,
+                         signals=signals,
+                         properties={
+                             'bundle': bundle,
+                             'stylesheet': stylesheet
+                         } | properties)

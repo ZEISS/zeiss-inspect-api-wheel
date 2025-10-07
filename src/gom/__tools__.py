@@ -71,15 +71,22 @@ def filter_exception_traceback(tb):
     # Traceback frames originating from the 'gom' system module are completely skipped.
     # The temporary directory information is removed from the traceback file paths.
     #
+    # <string> entries at the start of the stacktrace are removed as well, these originate from the in-memory startup-script
+    #
     filtered = []
+    at_stacktrace_start = True
     for frame, line in traceback.walk_tb(tb):
         if not gom.__config__.strip_tracebacks:
             filtered.append((frame, line))
+        elif at_stacktrace_start and frame.f_code.co_filename == "<string>":
+            continue
         elif not os.path.realpath(frame.f_code.co_filename).startswith(system_frame_prefix):
             if not '\\importlib\\' in frame.f_code.co_filename:
                 if not 'frozen importlib' in frame.f_code.co_filename:
-                    if str(frame.f_code.co_filename) != executed_file_prefix + '__gom_run_script__.py':
-                        filtered.append((frame, line))
+                    filtered.append((frame, line))
+        # Once we encounter anything but a to be filtered "<string>" entry,
+        # we do not filter any other of this type from the middle of the stacktrace
+        at_stacktrace_start = False
 
     return ''.join(traceback.StackSummary.extract(
         filtered).format()).replace(executed_file_prefix, '')

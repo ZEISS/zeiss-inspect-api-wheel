@@ -35,10 +35,10 @@ actuals in the ZEISS INSPECT software and will enable the user to create script 
 
 import gom
 
-from gom.api.extensions import ScriptedElement
+from gom.api.extensions import ScriptedCalculationElement
 
 
-class ScriptedActual (ScriptedElement):
+class ScriptedActual (ScriptedCalculationElement):
     '''
     This class is the base class for all scripted actuals
     '''
@@ -67,7 +67,8 @@ class Point (ScriptedActual):
 
     ```
     {
-        "value": (x: float, y: float, z: float) // The point in 3D space.
+        "value": (x: float, y: float, z: float), // The point in 3D space.
+        "data": {...}                            // Optional element data, stored with the element
     }
     ```
     '''
@@ -92,7 +93,8 @@ class Distance (ScriptedActual):
     ```
     {
         "point1": (x: float, y: float, z: float), // First point of the distance
-        "point2": (x: float, y: float, z: float)  // Second point of the distance
+        "point2": (x: float, y: float, z: float), // Second point of the distance
+        "data": {...}                             // Optional element data, stored with the element
     }
     ```
     '''
@@ -119,7 +121,8 @@ class Circle (ScriptedActual):
     {
         "center"   : (x: float, y: float, z: float), // Centerpoint of the circle
         "direction": (x: float, y: float, z: float), // Direction/normal of the circle
-        "radius"   : r: float                        // Radius of the circle
+        "radius"   : r: float,                       // Radius of the circle
+        "data": {...}                                // Optional element data, stored with the element
     }
     ```
     '''
@@ -148,7 +151,8 @@ class Cone (ScriptedActual):
         "point1": (x: float, y: float, z: float), // First point of the cone (circle center)
         "radius1": r1: float,                     // Radius of the first circle
         "point2": (x: float, y: float, z: float), // Second point of the cone (circle center)
-        "radius2": r2: float                      // Radius of the second circle
+        "radius2": r2: float,                     // Radius of the second circle
+        "data": {...}                             // Optional element data, stored with the element
     }
     ```
     '''
@@ -175,9 +179,10 @@ class Cylinder (ScriptedActual):
 
     ```
     {
-        "point": (x: float, y: float, z: float),     // Base point of the cylinder
+        "center": (x: float, y: float, z: float),    // Center point of the cylinder
         "direction": (x: float, y: float, z: float), // Direction of the cylinder
         "radius": r: float,                          // Radius of the cylinder
+        "data": {...}                                // Optional element data, stored with the element
     }
     ```
     '''
@@ -188,7 +193,7 @@ class Cylinder (ScriptedActual):
     def compute_stage(self, context, values):
         result = self.compute(context, values)
 
-        self.check_list(result, "point", float, 3)
+        self.check_list(result, "center", float, 3)
         self.check_list(result, "direction", float, 3)
         self.check_value(result, "radius", float)
 
@@ -203,8 +208,9 @@ class Plane (ScriptedActual):
 
     ```
     {
-        "normal": (x: float, y: float, z: float), // Normal of the plane
-        "distance": d: float                      // Distance of the plane
+        "normal": (x: float, y: float, z: float), // Normal direction of the plane
+        "point": (x: float, y: float, z: float),  // One point of the plane
+        "data": {...}                             // Optional element data, stored with the element        
     }
     ```
 
@@ -212,8 +218,10 @@ class Plane (ScriptedActual):
 
     ```
     {
-        "target": plane: Plane, // Source plane point of this plane
-        "offset": offset: float // Offset relative to the source plane
+        "point1": (x: float, y: float, z: float), // Point 1 of the plane
+        "point2": (x: float, y: float, z: float), // Point 2 of the plane
+        "point3": (x: float, y: float, z: float), // Point 3 of the plane
+        "data": {...}                             // Optional element data, stored with the element        
     }
     ```
 
@@ -221,7 +229,9 @@ class Plane (ScriptedActual):
 
     ```
     {
-        "plane": Reference // Reference to another plane element of coordinate system
+        "plane": Reference, // Reference to another plane element
+        "data": {...}       // Optional element data, stored with the element
+
     }
     ```
     '''
@@ -241,7 +251,8 @@ class ValueElement (ScriptedActual):
 
     ```
     {
-        "value": v: float // Value of the element
+        "value": v: float, // Value of the element
+        "data": {...}      // Optional element data, stored with the element        
     }
     ```
     '''
@@ -265,8 +276,9 @@ class Curve (ScriptedActual):
 
     ```
     {
-        "plane": p: Plane // Plane of the curve (optional)
-        "curves": [Curve] // List of curves
+        "plane": p: Plane, // Plane of the curve (optional)
+        "curves": [Curve], // List of curves
+        "data": {...}      // Optional element data, stored with the element        
     }
     ```
 
@@ -274,7 +286,7 @@ class Curve (ScriptedActual):
 
     ```
     {
-        "points": [(x: float, y: float, z: float), ...] // List of points
+        "points": [(x: float, y: float, z: float), ...]
     }
     ```
 
@@ -296,7 +308,8 @@ class SurfaceCurve (ScriptedActual):
 
     ```
     {
-        "curves": [Curve]
+        "curves": [Curve], // Curve definition
+        "data": {...}      // Optional element data, stored with the element        
     }
     ```
 
@@ -328,7 +341,8 @@ class Section (ScriptedActual):
         "curves": [Curve],
         "plane": Plane,
         "cone": Cone,
-        "cylinder": Cylinder
+        "cylinder": Cylinder,
+        "data": {...}          // Optional element data, stored with the element        
     }
     ```
 
@@ -360,7 +374,8 @@ class PointCloud (ScriptedActual):
     ```
     {
         "points":  [(x: float, y: float, z: float), ...], // List of points
-        "normals": [(x: float, y: float, z: float), ...]  // List of normals for each point
+        "normals": [(x: float, y: float, z: float), ...], // List of normals for each point
+        "data": {...}                                     // Optional element data, stored with the element        
     }
     ```
     '''
@@ -389,7 +404,8 @@ class Surface (ScriptedActual):
     ```
     {
         "vertices":  [(x: float, y: float, z: float), ...], // List of vertices
-        "triangles": [(i1: int, i2: int, i3: int), ...]     // List of triangles (vertices' indices)
+        "triangles": [(i1: int, i2: int, i3: int), ...],    // List of triangles (vertices' indices)
+        "data": {...}                                       // Optional element data, stored with the element        
     }
     ```
     '''
@@ -422,7 +438,8 @@ class Volume (ScriptedActual):
     ```
     {
         'voxel_data': data: np.array (shape=(x, y, z), dtype=np.float32), // Voxels of the volume
-        'transformation': (x: float, y: float, z: float)                  // Transformation of the volume
+        'transformation': (x: float, y: float, z: float),                 // Transformation of the volume
+        "data": {...}                                      // Optional element data, stored with the element        
     }
     ```
     '''

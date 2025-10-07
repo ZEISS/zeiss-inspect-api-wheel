@@ -1,15 +1,15 @@
 #
 # API declarations for gom.api.settings
 #
-# @brief API for storing add-on related settings persistently
+# @brief API for storing app related settings persistently
 # 
-# This API allows reading/writing values into the application configuration permantly. The
-# configuration is persistant and will survive application restarts. Also, it can be accessed
+# This API allows reading/writing values into the application configuration permanently. The
+# configuration is persistent and will survive application restarts. Also, it can be accessed
 # via the applications preferences dialog.
 # 
-# The configuration entries must be defined in the add-ons `metainfo.json` file. This configuration
+# The configuration entries must be defined in the app's `metainfo.json` file. This configuration
 # defined the available keys, the entry types and the entry properties. If the entry type can be
-# represented by some widget, the setting entry will also be present in the applications 'preferences'
+# represented by some widget, the setting entry will also be present in the application's 'preferences'
 # dialog and can be adapted interactively there.
 # 
 # ### Example
@@ -17,7 +17,7 @@
 # ```
 # {
 #   "title": "Settings API example",
-#   "description": "Example add-on demonstrating usage of the settings API",
+#   "description": "Example app demonstrating usage of the settings API",
 #   "uuid": "3b515488-aa7b-4035-85e1-b9509db8af4f",
 #   "version": "1.0.2",
 #   "settings": [
@@ -74,8 +74,8 @@
 #  }
 # ```
 # 
-# This will lead to configuration entries in the applications preferences. Given that the `metainfo.json` is
-# part of an add-on called 'Settings API Example', the application preferences will contain the following items
+# This will lead to configuration entries in the application's preferences. Given that the `metainfo.json` is
+# part of an app called 'Settings API Example', the application preferences will contain the following items
 # (visible setting entries only):
 # 
 # ![Settings level 1](images/settings_api_preferences_1.png)
@@ -127,7 +127,7 @@ def get(key:str) -> Any:
   h = gom.api.settings.get ('dialog.height')
   ```
   
-  @param key     Configuration key. Must be a key as defined in the add-ons `metainfo.json` file.
+  @param key     Configuration key. Must be a key as defined in the app's `metainfo.json` file.
   @return Configuration value for that key
   '''
   return gom.__api__.__call_function__(key)
@@ -147,20 +147,20 @@ def set(key:str, value:Any) -> None:
   gom.api.settings.set ('dialog.height', 480)
   ```
   
-  @param key     Configuration key. Must be a key as defined in the add-ons `metainfo.json` file.
+  @param key     Configuration key. Must be a key as defined in the app's `metainfo.json` file.
   @param value   Value to be written
   '''
   return gom.__api__.__call_function__(key, value)
 
 def list() -> list[str]:
   '''
-  @brief List all available keys for the current add-on
+  @brief List all available keys for the current app
   @version 1
   
-  This function returns a list of all available keys in the settings for the current add-on.
-  These keys are the same configuration keys are used in the `metainfo.json` file of that add-on.
+  This function returns a list of all available keys in the settings for the current app.
+  These keys are the same configuration keys are used in the `metainfo.json` file of that app.
   
-  @return List of all the keys in the settings which belong to the current add-on
+  @return List of all the keys in the settings which belong to the current app
   '''
   return gom.__api__.__call_function__()
 

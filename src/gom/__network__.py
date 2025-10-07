@@ -27,7 +27,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-import inspect
 import pickle
 import threading
 import traceback
@@ -151,8 +150,8 @@ class Connection:
         '''
         Send request and wait for incoming replies or calls
 
-        This function sends a request to the server and waits until a new message comes in. 
-        That message can either be the reply to the request sent or a new  client site function 
+        This function sends a request to the server and waits until a new message comes in.
+        That message can either be the reply to the request sent or a new  client site function
         call. The function does not return before the request has been answered.
         '''
         if not isinstance(command, Request):
