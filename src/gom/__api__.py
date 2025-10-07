@@ -382,13 +382,14 @@ class Encoder(object):
             #
             return GomApiInstance(obj['id'])
 
-    def encode(self, req):
+    def encode(self, req, caller):
         from gom.__network__ import EncoderContext, DecoderContext
 
         with EncoderContext() as context:
             string = json.dumps(req, cls=Encoder.CustomJSONEncoder, encoding_context=context)
 
-        string = gom.__common__.__connection__.request(Request.API, {'json': string})
+        string = gom.__common__.__connection__.request(
+            Request.API, {'json': string, 'caller': caller if caller != None else ""})
 
         with DecoderContext() as context:
             reply = json.loads(string, cls=Encoder.CustomJSONDecoder, decoding_context=context)
@@ -399,7 +400,7 @@ class Encoder(object):
             return reply['result']
         raise KeyError()
 
-    def call_function(self, module, function, args, kwargs):
+    def call_function(self, module, function, args, kwargs={}, caller=None):
 
         #
         # Script-to-script call shortlink. This way, various value conversions can be skipped and shared memory for
@@ -414,16 +415,16 @@ class Encoder(object):
             'params': args
         }
 
-        return self.encode(request)
+        return self.encode(request, caller)
 
-    def call_method(self, instance, method, args):
+    def call_method(self, instance, method, args, caller=None):
         request = {
             'instance': instance,
             'call': method,
             'params': args
         }
 
-        return self.encode(request)
+        return self.encode(request, caller)
 
 
 __encoder__ = Encoder()
@@ -437,12 +438,20 @@ def __call_function__(*args, **kwargs):
     '''
     frame = inspect.currentframe().f_back
 
+    # Extract the original function caller, i.e., the script in which the api function was written
+    # The distinction to the executed script is important for some api functions in the context of shared environments
+    # There scripts from other apps can be imported and some api functions resolve the calls based on the app (e.g. settings)
+    parent = frame.f_back
+    caller = ""
+    if parent != None:
+        caller = parent.f_code.co_filename
+
     module = inspect.getmodule(frame).__name__
     prefix = 'gom.api.'
     if module.startswith(prefix):
         module = module[len(prefix):]
 
-    return __encoder__.call_function(module, frame.f_code.co_name, args, kwargs)
+    return __encoder__.call_function(module, frame.f_code.co_name, args, kwargs, caller)
 
 
 class Object:

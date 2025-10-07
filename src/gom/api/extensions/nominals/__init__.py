@@ -27,10 +27,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from gom.api.extensions import ScriptedElement
+from gom.api.extensions import ScriptedCalculationElement
 
 
-class ScriptedNominal (ScriptedElement):
+class ScriptedNominal (ScriptedCalculationElement):
     '''
     This class is the base class for all scripted nominals
     '''
@@ -59,7 +59,8 @@ class Point (ScriptedNominal):
 
     ```
     {
-        "value": (x: float, y: float, z: float) // The point in 3D space.
+        "value": (x: float, y: float, z: float), // The point in 3D space.
+        "data": {...}                            // Optional element data, stored with the element        
     }
     ```
     '''
@@ -84,7 +85,8 @@ class Distance (ScriptedNominal):
     ```
     {
         "point1": (x: float, y: float, z: float), // First point of the distance
-        "point2": (x: float, y: float, z: float)  // Second point of the distance
+        "point2": (x: float, y: float, z: float), // Second point of the distance
+        "data": {...}                             // Optional element data, stored with the element       
     }
     ```
     '''
@@ -111,7 +113,8 @@ class Circle (ScriptedNominal):
     {
         "center"   : (x: float, y: float, z: float), // Centerpoint of the circle
         "direction": (x: float, y: float, z: float), // Direction/normal of the circle
-        "radius"   : r: float                        // Radius of the circle
+        "radius"   : r: float,                       // Radius of the circle
+        "data": {...}                                // Optional element data, stored with the element        
     }
     ```
     '''
@@ -140,7 +143,8 @@ class Cone (ScriptedNominal):
         "point1": (x: float, y: float, z: float), // First point of the cone (circle center)
         "radius1": r1: float,                     // Radius of the first circle
         "point2": (x: float, y: float, z: float), // Second point of the cone (circle center)
-        "radius2": r2: float                      // Radius of the second circle
+        "radius2": r2: float,                     // Radius of the second circle
+        "data": {...}                             // Optional element data, stored with the element        
     }
     ```
     '''
@@ -170,6 +174,7 @@ class Cylinder (ScriptedNominal):
         "point": (x: float, y: float, z: float),     // Base point of the cylinder
         "direction": (x: float, y: float, z: float), // Direction of the cylinder
         "radius": r: float,                          // Radius of the cylinder
+        "data": {...}                                // Optional element data, stored with the element        
     }
     ```
     '''
@@ -196,7 +201,8 @@ class Plane (ScriptedNominal):
     ```
     {
         "normal": (x: float, y: float, z: float), // Normal of the plane
-        "distance": d: float                      // Distance of the plane
+        "distance": d: float,                     // Distance of the plane
+        "data": {...}                             // Optional element data, stored with the element        
     }
     ```
 
@@ -204,8 +210,9 @@ class Plane (ScriptedNominal):
 
     ```
     {
-        "target": plane: Plane, // Source plane point of this plane
-        "offset": offset: float // Offset relative to the source place
+        "target": plane: Plane,  // Source plane point of this plane
+        "offset": offset: float, // Offset relative to the source place
+        "data": {...}            // Optional element data, stored with the element        
     }
     ```
 
@@ -213,7 +220,8 @@ class Plane (ScriptedNominal):
 
     ```
     {
-        "plane": Reference // Reference to another plane element of coordinate system
+        "plane": Reference, // Reference to another plane element of coordinate system
+        "data": {...}       // Optional element data, stored with the element
     }
     ```
     '''
@@ -233,7 +241,8 @@ class ValueElement (ScriptedNominal):
 
     ```
     {
-        "value": v: float // Value of the element
+        "value": v: float, // Value of the element
+        "data": {...}      // Optional element data, stored with the element        
     }
     ```
     '''
@@ -257,8 +266,9 @@ class Curve (ScriptedNominal):
 
     ```
     {
-        "plane": p: Plane // Plane of the curve (optional)
-        "curves": [Curve] // List of curves
+        "plane": p: Plane  // Plane of the curve (optional)
+        "curves": [Curve], // List of curves
+        "data": {...}      // Optional element data, stored with the element        
     }
     ```
 
@@ -288,7 +298,8 @@ class SurfaceCurve (ScriptedNominal):
 
     ```
     {
-        "curves": [Curve]
+        "curves": [Curve], // Curves
+        "data": {...}      // Optional element data, stored with the element        
     }
     ```
 
@@ -320,7 +331,8 @@ class Section (ScriptedNominal):
         "curves": [Curve],
         "plane": Plane,
         "cone": Cone,
-        "cylinder": Cylinder
+        "cylinder": Cylinder,
+        "data": {...}         // Optional element data, stored with the element        
     }
     ```
 
@@ -352,7 +364,8 @@ class PointCloud (ScriptedNominal):
     ```
     {
         "points":  [(x: float, y: float, z: float), ...], // List of points
-        "normals": [(x: float, y: float, z: float), ...]  // List of normals for each point
+        "normals": [(x: float, y: float, z: float), ...], // List of normals for each point
+        "data": {...}                                     // Optional element data, stored with the element        
     }
     ```
     '''
@@ -373,7 +386,8 @@ class Surface (ScriptedNominal):
     ```
     {
         "vertices":  [(x: float, y: float, z: float), ...], // List of vertices
-        "triangles": [(i1: int, i2: int, i3: int), ...]     // List of triangles (vertices indices)
+        "triangles": [(i1: int, i2: int, i3: int), ...],    // List of triangles (vertices indices)
+        "data": {...}                                       // Optional element data, stored with the element
     }
     ```
     '''
