@@ -7,7 +7,7 @@ on:
       - apiwheel-update-2026
       - apiwheel-update-2025
 jobs:
-  UpdatePythonApiDoc:
+  UpdatePythonApiWheel:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
