@@ -80,6 +80,16 @@ class Encoder:
 
     @staticmethod
     def supports_shared_memory():
+        '''
+        Check if shared memory is supported on the current platform.
+        '''
+
+        #
+        # Shared memory is supported on Windows only currently, because the underlying implementation differs.
+        # On Windows, the kernel keeps a reference count of the open handles to a segment while on POSIX the
+        # memory is managed by the process itself. So ownership passing is harder on POSIX and would require
+        # additional synchronization mechanisms.
+        #
         return sys.platform.startswith('win')
 
     @staticmethod
@@ -98,7 +108,7 @@ class Encoder:
 
         byte_size = size * np.dtype(dtype).itemsize
         with mmap.mmap(-1, byte_size, tagname=key, access=mmap.ACCESS_READ) as m:
-            result = np.frombuffer(bytes(m[:]), dtype=dtype, count=size).reshape(shape)
+            result = np.frombuffer(bytes(m[:]), dtype=dtype, count=size).reshape(shape).copy()
 
         context.add(key)
 
@@ -106,6 +116,15 @@ class Encoder:
 
     @staticmethod
     def create_shared_memory_segment(data):
+        '''
+        @brief Create shared memory segment
+
+        This function creates a shared memory segment which can be used to pass large amounts of data
+        between processes.
+
+        @param data Data to be stored in the shared memory segment
+        @return Tuple of (segment, key) for the created shared memory segment
+        '''
 
         segment = None
         key = None
@@ -117,6 +136,8 @@ class Encoder:
             Encoder.shared_memory_id_counter += 1
 
             segment = mmap.mmap(-1, len(b), tagname=key, access=mmap.ACCESS_WRITE)
+            if segment.size() < len(b):
+                raise RuntimeError(f'Cannot create shared memory segment of {len (b)} bytes')
 
             segment.write(b)
             segment.flush()
@@ -309,11 +330,11 @@ class CdcEncoder (Encoder):
                 raise RuntimeError(
                     '\'{obj}\' has unsupported data type \'{type}\'and cannot be encoded'.format(obj=obj, type=obj.dtype))
 
-            if Encoder.supports_shared_memory():
+            if Encoder.supports_shared_memory() and obj.nbytes > 10 * 1024:
                 self.encodeBool(buffer, True)
                 segment, key = Encoder.create_shared_memory_segment(obj)
 
-                context.add(segment)
+                context.add(key, segment)
                 self.encodeStr(buffer, key)
 
             else:
@@ -669,7 +690,7 @@ class JsonEncoder (Encoder):
 
             if Encoder.supports_shared_memory():
                 segment, key = Encoder.create_shared_memory_segment(obj)
-                context.add(segment)
+                context.add(key, segment)
                 return {JsonEncoder.TYPE_DEFINITION_KEY: JsonEncoder.TYPE_PACKAGE,
                         'shape': list(obj.shape),
                         'type': type,

@@ -30,8 +30,8 @@
 @brief Scripted sequence elements
  
 This module contains the base class for scripted sequence elements. A scripted sequence element
-combines a sequence of commands into one group. The group is treated as one single combined element
-with parts. The resulting cluster of elements can then be edited again as a altogether group, of the
+combines a sequence of commands into one sequence. The sequence is treated as one single combined element
+with parts. The resulting cluster of elements can then be edited again as a altogether sequence, of the
 single elements within can be edited separately.
 '''
 
@@ -41,7 +41,7 @@ from gom.api.extensions import ScriptedElement
 from abc import abstractmethod
 
 
-class ScriptedSequenceElement (ScriptedElement):
+class ScriptedSequence (ScriptedElement):
     '''
     This class is used to define a scripted sequence element
     '''
@@ -60,45 +60,144 @@ class ScriptedSequenceElement (ScriptedElement):
         super().__init__(id=id,
                          category='scriptedelement.sequence',
                          description=description,
-                         callables={'create': self.create})
+                         callables={'create': self.create,
+                                    'edit': self.edit})
 
     @abstractmethod
-    def create(self, context, args):
+    def create(self, context, name, args):
         '''
-        Function called to create the scripted sequence
+        Function called to create a sequence of elements
 
-        This function is called to create or edit the element of a scripted sequence. The
-        parameters set in the `dialog` function are passed here as a parameter.
+        **Sequence creation**
 
-        In principle, this function is like a sub script calling the single create commands.
-        Behind the scenes, the calls are handled a bit different than regular script command 
-        calls to be able to build a component object at the end. In detail, the following rules
-        apply:
+        This function is called to create a sequence of elements initially. It can use the regular scripted
+        creation commands to create the elements of that sequence and determine which of these elements is
+        the 'leading' element of the sequence. The leading element is the one which represents the whole
+        sequence in the sense that editing the sequence again is initialzed by editing the leading element or
+        deleting the leading element deletes the whole sequence.
 
-        - The order of elements must remain the same during object lifetime. So no parameter or
-          external condition may change the element order.
-        - The number of elements must remain the same during object lifetime. No parameter or
-          condition may affect the number of created elements.
-        - There may not be other glue code commands in the sequence. Only creation commands are allowed
-          here. In principle, other glue code is allowed, including API calls.
+        Example:
 
-        These limitations are required because behind the scenes, the scripting engine processes the
-        creation requests depending on the mode of sequence command execution:
+        ```
+        def create (self, context, name, args):
 
-        - For a simple creation process (like a scripted sequence creation command), the command list is
-          executed like any other script.
-        - When an existing creation sequence is edited, the command list is **not** executed regularly.
-          Instead, the command parameters are collected and will be passed to the already existing 
-          elements to adapt these.
-        - For preview computation, a combination of both modes is used: The objects are created in a first
-          step, but marked as 'preview' and will not be part of the regular dependency graph or project.
-          Afterwards, like in the 'edit' case, the parameters are collected and passed to the already 
-          existing preview elements then to update these. 
+          #
+          # Extract parameters from the dialog
+          #
+          distance = args['distance']
 
-        @param context  The context of the sequence element
-        @param args     The arguments passed to the sequence element, usually from the configuration dialog
-        @return Dictionary describing the created sequence element. The fields here are:
-                'elements' - List of all created elements (including the leading element)
-                'leading' - 'Leading' element which represents the whole sequence
+          #
+          # Create sequence via the regular creation commands. Here, two points and a distance
+          # between these points is created, with the distance being the leading element.
+          #
+          POINT_1=gom.script.primitive.create_point (
+            name=self.generate_element_name (name, 'First point'), 
+            point={'point': gom.Vec3d (0.0, 0.0, 0.0)})
+
+          POINT_2=gom.script.primitive.create_point (
+            name=self.generate_element_name (name, 'Second point'), 
+            point={'point': gom.Vec3d (distance, 0.0, 0.0)})
+
+          DISTANCE=gom.script.inspection.create_distance_by_2_points (
+            name = name,
+            point1=POINT_1, 
+            point2=POINT_2)
+
+          #
+          # Return created sequence elements and the leading element of that sequence
+          #
+          return {'elements': [POINT_1, POINT_2, DISTANCE], 'leading': DISTANCE}  
+        ```
+
+        **Element naming**
+
+        Element names must be unique within a project. Also, the elements belonging to the same sequence should be 
+        identifiable via their names. To assure this, the element names should be computed via the API function 
+        `generate_element_name()`. Please see documentation of this function for details.
+
+        @param context  The context of the element
+        @param name     Name of the leading element, extracted from the dialog.
+        @param args     The arguments passed to the sequence, usually from the configuration dialog
+        @return Dictionary describing the created element. The fields here are:
+                `elements` - List of all created elements (including the leading element)
+                `leading` - 'Leading' element which represents the whole sequence
         '''
         pass
+
+    @abstractmethod
+    def edit(self, context, elements, args):
+        '''
+        Function called to edit the scripted sequence
+
+        This function is called when a scripted sequence is edited. It will receive the current sequence elements
+        together with the current sequence creation dialog values and must reconfigure the sequence elements accordingly.
+
+        Example:
+
+        ```
+        def edit (self, context, elements, args):
+
+          #
+          # The 'elements' parameter is a list containing the elements in the
+          # same order as returned by the 'create()' function
+          #
+          POINT_1, POINT_2, DISTANCE = elements
+
+          #
+          # Actual dialog parameters
+          #
+          distance = args['distance']
+
+          gom.script.sys.edit_creation_parameters (
+            element=POINT_2, 
+            point={'point': gom.Vec3d (distance, 0.0, 0.0)})        
+        ```
+
+        @param context  The context of the sequence
+        @param elements List of current elements of the sequence in the same order as returned by the `create()` function
+        @param args     Creation arguments from the dialog
+        '''
+        pass
+
+    def generate_element_name(self, leading_name, basename):
+        '''
+        Generates a unique name for an element of the scripted sequence.
+
+        This function generates a unique name for an element of the scripted sequence. The name is based 
+        on the leading element of the sequence, plus a base name and a running number.
+
+        **Example**
+
+        For a sequence with id `Distance 1` and a base name `Point`, the generated names will be
+        `Distance 1 ● Point 1`, `Distance 1 ● Point 2`, ...
+
+        When implemented, the `create()` function of the scripted sequence should use this function
+        to generate the names of the single elements:
+
+        ```python
+        def create(self, context, name, args):
+
+            distance = args['distance']  # Distance from dialog
+
+            POINT_1 = gom.script.primitive.create_point(
+                name=self.generate_element_name(name, 'First point'),
+                point={'point': gom.Vec3d(0.0, 0.0, 0.0)})
+
+            POINT_2 = gom.script.primitive.create_point(
+                name=self.generate_element_name(name, 'Second point'),
+                point={'point': gom.Vec3d(distance, 0.0, 0.0)})
+
+            DISTANCE = gom.script.inspection.create_distance_by_2_points(
+                name=name,
+                point1=POINT_1,
+                point2=POINT_2)
+
+            return {'elements': [POINT_1, POINT_2, DISTANCE], 'leading': DISTANCE}
+        ```
+        @param leading_name Name of the leading element of the sequence. This is usually the name as
+                            specified in the creation dialog.
+        @param basename     Base name for the element, like `Point` or `Line`. This name part will be
+                            extended by a running number to make it unique.
+        @return Generated unique name
+        '''
+        return f'{leading_name} ● {basename}'

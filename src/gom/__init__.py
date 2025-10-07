@@ -76,8 +76,27 @@ def tr(text, id=None):
     translated = text
 
     try:
+        origin = ""
+        try:
+            #
+            # Extract the caller information to find the true origin of the translation call
+            # If it is an script from within an app, origin will be the qualified name of that script
+            # Otherwise it will usually be some filepath (external script)
+            #
+
+            #
+            # sys._getframe is more performant than using the function overhead from the inspect module
+            # however, it is considered an implementation detail of CPython and not guaranteed to exist, so we keep a fallback
+            #
+            if hasattr(sys, '_getframe'):
+                origin = sys._getframe(1).f_code.co_filename
+            else:
+                origin = inspect.currentframe().f_back.f_code.co_filename
+        except:
+            pass
+
         translated = gom.__common__.__connection__.request(Request.TRANSLATE, {
-            'text': text, 'id': id if id else ''})['translation']
+            'text': text, 'id': id if id else '', 'origin': origin})['translation']
     except:
         pass
 
