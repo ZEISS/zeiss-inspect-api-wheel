@@ -124,7 +124,7 @@ class Types:
     @staticmethod
     def type_setattr(self, key, value):
 
-        if key in self.__args__:
+        if key in self.__kwargs__:
             self.__kwargs__[key] = value
 
         gom.__common__.__connection__.request(Request.TYPE_SETATTR, {'type': type(self).__id__,
