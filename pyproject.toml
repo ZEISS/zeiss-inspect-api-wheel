@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zeiss_inspect_api"
-version = "2026.3.0.342"
+version = "2026.3.0.343"
 authors = [
   { name="Carl Zeiss GOM Metrology GmbH", email="info.optical.metrology@zeiss.com" },
 ]
