@@ -32,14 +32,14 @@ class Function (gom.__api__.Object):
     '''
     return self.__call_method__('name')
 
-  def descripion(self) -> str:
+  def description(self) -> str:
     '''
     @brief Returns the optional function description
     @version 1
     
     @return Function description
     '''
-    return self.__call_method__('descripion')
+    return self.__call_method__('description')
 
   def signature(self) -> list[str]:
     '''

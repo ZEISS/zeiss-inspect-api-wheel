@@ -39,6 +39,10 @@ import gom.__state__
 import gom.__tools__
 
 from gom.__common__ import Request
+from gom.__logging__ import ProtocolLogger
+
+logger = None
+# logger = ProtocolLogger()
 
 
 class EncoderContext:
@@ -47,17 +51,17 @@ class EncoderContext:
     '''
 
     def __init__(self):
-        self.handles = []
+        self.handles = {}
 
-    def add(self, handle):
-        self.handles.append(handle)
+    def add(self, key, handle):
+        self.handles[key] = handle
 
     def __enter__(self):
-        self.handles = []
+        self.handles = {}
         return self
 
     def __exit__(self, exception, value, traceback):
-        for handle in self.handles:
+        for key, handle in self.handles.items():
             handle.close()
 
         self.handles = []
@@ -79,6 +83,7 @@ class DecoderContext:
         return self
 
     def __exit__(self, exception, value, traceback):
+
         if self.keys:
             gom.__common__.__connection__.request(Request.RELEASE, {'keys': self.keys})
         self.keys = []
@@ -139,6 +144,9 @@ class Connection:
         self._ws = websocket.WebSocket()
         self._ws.connect(uri)
 
+        if logger:
+            logger.log(ProtocolLogger.EventType.CONNECTED, uuid.UUID(int=0), repr(uri))
+
     def send(self, message, context):
         '''
         Send a message to the server
@@ -161,14 +169,22 @@ class Connection:
         if threading.get_ident() != self._thread_id:
             raise RuntimeError('Using GOM API features from within different threads is no allowed.')
 
-        with EncoderContext() as context:
+        #
+        # The encoder context remains
+        #
+        with EncoderContext() as encoder_context:
 
-            request_id = str(uuid.uuid4())
+            request_uuid = uuid.uuid4()
+            request_id = str(request_uuid)
+
+            if logger:
+                logger.log(ProtocolLogger.EventType.REQUEST.value, request_uuid, command.name)
+
             self.send({Connection.Attribute.TYPE: Connection.Attribute.Type.REQUEST,
                        Connection.Attribute.APIKEY: gom.__config__.api_access_key,
                        Connection.Attribute.ID: request_id,
                        Connection.Attribute.VALUE: command.value,
-                       Connection.Attribute.PARAMS: params}, context)
+                       Connection.Attribute.PARAMS: params}, encoder_context)
 
             #
             # Although the protocol itself is synchroneous, this function is reentrant. So the
@@ -177,18 +193,39 @@ class Connection:
             # action instead.
             #
             # The 'self._replies' dictionary is filled with the received replies which will be
-            # consumed by the matching instances then one by one. Each entry contains of a pair
+            # consumed by the matching instances then one by one. Each entry consists of a pair
             # (reply type, reply). The 'reply' format depends on that specific type.
             #
             while not request_id in self._replies:
 
                 received = self._ws.recv()
 
-                with DecoderContext() as context:
-                    reply = self._encoder.decode(received, context)
+                with DecoderContext() as decoder_context:
+                    reply = self._encoder.decode(received, decoder_context)
 
                 message_type = reply[Connection.Attribute.TYPE]
                 message_id = reply[Connection.Attribute.ID]
+
+                if logger:
+                    logger.log(ProtocolLogger.EventType.RESPONSE.value, message_id, message_type)
+
+                #
+                # If the message id is invalid, an error happened during message decoding before the
+                # real id could be extracted. This is a fatal error in the protocal which cannot be
+                # recovered from - the script must be terminated then.
+                #
+                if str(message_id) == str(uuid.UUID(int=0)):
+                    error = f'Invalid message id {message_id} received. Protocol is broken, terminating script.'
+
+                    if 'error' in reply:
+                        error += f" Error details: {reply['error']}"
+
+                    self._replies[request_id] = (
+                        message_type, (error,
+                                       reply[Connection.Attribute.DESCRIPTION] if Connection.Attribute.DESCRIPTION in reply else None,
+                                       reply[Connection.Attribute.CODE] if Connection.Attribute.CODE in reply else None,
+                                       reply[Connection.Attribute.LOG] if Connection.Attribute.LOG in reply else None,
+                                       reply[Connection.Attribute.VALUE] if Connection.Attribute.VALUE in reply else None))
 
                 #
                 # Type 'ERROR': Request failed. Error code/error_log are returned.
@@ -236,7 +273,7 @@ class Connection:
                                    Connection.Attribute.ID: message_id,
                                    Connection.Attribute.STATE: True,
                                    Connection.Attribute.VALUE: result
-                                   }, context)
+                                   }, encoder_context)
 
                     except BaseException as e:
                         gom.log.error(traceback.format_exc())
@@ -260,7 +297,7 @@ class Connection:
                                    Connection.Attribute.STATE: False,
                                    Connection.Attribute.VALUE: [
                                        e_name, traceback.format_exc(), pickle.dumps((e_type, e_text))]
-                                   }, context)
+                                   }, encoder_context)
                     finally:
                         gom.__state__.call_function_active -= 1
 
