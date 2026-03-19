@@ -16,7 +16,7 @@ class ProgressInformation (gom.__api__.Object):
   '''
   @deprecated Please use gom.api.progress.ProgressBar instead
   
-  @brief Auxillary class allowing to set progress information
+  @brief Auxiliary class allowing to set progress information
   
   This class is used to access the progress bar and progress message widgets of the application.
   '''

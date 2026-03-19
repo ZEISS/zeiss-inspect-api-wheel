@@ -48,7 +48,6 @@ import importlib.util
 
 import gom.__api__
 import gom.__config__
-import gom.__state__
 import gom.__test__
 import gom.__tools__
 
