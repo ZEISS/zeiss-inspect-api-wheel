@@ -43,7 +43,7 @@ from gom.__common__ import Request
 
 class EncoderContext:
     '''
-    \brief Encoding context caring for shared memory segments
+    @brief Encoding context caring for shared memory segments
     '''
 
     def __init__(self):
@@ -65,7 +65,7 @@ class EncoderContext:
 
 class DecoderContext:
     '''
-    \brief Decoding context caring for shared memory segments
+    @brief Decoding context caring for shared memory segments
     '''
 
     def __init__(self):

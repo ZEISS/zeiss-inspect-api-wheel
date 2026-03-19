@@ -94,7 +94,7 @@ def filter_exception_traceback(tb):
 
 class StdoutFlusher:
     '''
-    \brief This class writes stdout events and flushes the text buffer immediately
+    @brief This class writes stdout events and flushes the text buffer immediately
     '''
 
     def __init__(self):
@@ -122,7 +122,7 @@ class StdoutFlusher:
 
 class StderrFlusher:
     '''
-    \brief This class writes stderr events and flushes the text buffer immediately
+    @brief This class writes stderr events and flushes the text buffer immediately
     '''
 
     def __init__(self):
@@ -258,7 +258,7 @@ class ResourceImportFinder (importlib.abc.MetaPathFinder):
 
 class EnvironmentListener (collections.abc.Mapping):
     '''
-    \brief Listener for changes to the environment variables
+    @brief Listener for changes to the environment variables
     '''
 
     def __enter__(self):
@@ -341,7 +341,7 @@ class EnvironmentListener (collections.abc.Mapping):
 
 class ExitHandler:
     '''
-    \brief This class wraps the standard 'sys.exit ()' functions
+    @brief This class wraps the standard 'sys.exit ()' functions
     '''
 
     original_exit = None
@@ -380,7 +380,7 @@ class LogHandler (logging.Handler):
 
 class Console:
     '''
-    \brief Unfiltered stream for direct console output (for test script purposes)
+    @brief Unfiltered stream for direct console output (for test script purposes)
     '''
 
     def write(self, text):
@@ -392,7 +392,7 @@ class Console:
 
 class NumpyErrorMessageFacade:
     '''
-    \brief Numpy error message facade
+    @brief Numpy error message facade
 
     This class is used to raise a self speaking error message in case of using
     numpy functions without prior importing the numpy library. This is needed because

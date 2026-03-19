@@ -43,7 +43,7 @@ class ScriptedNominal (ScriptedCalculationElement):
         @param description  Human readable name, will appear in menus
         @param element_type Type of the generated element (point, line, ...)
         '''
-        properties = {}
+        properties = {'nominal': True}
         if help_id:
             properties['help_id'] = help_id
 

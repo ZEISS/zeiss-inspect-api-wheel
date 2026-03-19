@@ -33,7 +33,7 @@ from gom.__common__ import Request
 
 class TestInterface:
     '''
-    \brief Function collection for debugging and testing
+    @brief Function collection for debugging and testing
     '''
 
     def reflect(self, value):

@@ -47,8 +47,8 @@ class Encoder:
 
     class PackageType (Enum):
         '''
-        \brief Package content data type
-        \attention Must match with the enumeration in the server
+        @brief Package content data type
+        @attention Must match with the enumeration in the server
         '''
         INVALID = 0
         INT_8 = 1
@@ -133,8 +133,8 @@ class CdcEncoder (Encoder):
 
     class Type (Enum):
         '''
-        \brief Data types handled by the CDC encoding scheme.
-        \attention Must match with the enumeration in the server
+        @brief Data types handled by the CDC encoding scheme.
+        @attention Must match with the enumeration in the server
         '''
         NONE = 0
         BOOLEAN = 1
@@ -160,12 +160,12 @@ class CdcEncoder (Encoder):
 
     def encode(self, obj, context):
         '''
-        \brief Encode data package
+        @brief Encode data package
 
         Encodes an arbitrary Python object into binary payload package.
-        \param obj	 Python object
-        \param context Context for additional encoding information like used shared memory segments etc.
-        \return Binary data block
+        @param obj	 Python object
+        @param context Context for additional encoding information like used shared memory segments etc.
+        @return Binary data block
         '''
         buffer = bytearray()
         self.encodeValue(buffer, obj, context)
@@ -173,10 +173,10 @@ class CdcEncoder (Encoder):
 
     def encodeValue(self, buffer, obj, context):
         '''
-        \brief Encode object into CDC (compact data container) format
+        @brief Encode object into CDC (compact data container) format
 
-        \param buffer Array chunk buffer the generated data is appended to
-        \param obj	Arbitrary Python object to be encoded
+        @param buffer Array chunk buffer the generated data is appended to
+        @param obj	Arbitrary Python object to be encoded
         '''
         if obj is None:
             self.encodeType(buffer, CdcEncoder.Type.NONE)
@@ -347,10 +347,10 @@ class CdcEncoder (Encoder):
 
     def decode(self, data, context):
         '''
-        \brief Decode data package
+        @brief Decode data package
 
-        \param data Binary data block
-        \return Represented Python object
+        @param data Binary data block
+        @return Represented Python object
         '''
         class InStream:
 
@@ -368,13 +368,13 @@ class CdcEncoder (Encoder):
 
     def decodeValue(self, s, context):
         '''
-        \brief Decode the next encoded Python object in the buffer
+        @brief Decode the next encoded Python object in the buffer
 
         If the encoded object is a container, the container content is decoded
         recursively.
 
-        \param s Data stream
-        \return Python object
+        @param s Data stream
+        @return Python object
         '''
         obj_type = CdcEncoder.Type(s.read(1)[0])
 
@@ -550,7 +550,7 @@ class CdcEncoder (Encoder):
 #
 class JsonEncoder (Encoder):
     '''
-    \brief Payload data encoding/decoding in JSON format
+    @brief Payload data encoding/decoding in JSON format
     '''
 
     #
@@ -585,12 +585,12 @@ class JsonEncoder (Encoder):
 
     def encode(self, obj, context):
         '''
-        \brief Encode data package
+        @brief Encode data package
 
         Encodes an arbitrary Python object into binary payload package.
 
-        \param obj Python object
-        \return Binary data block
+        @param obj Python object
+        @return Binary data block
         '''
         return json.dumps(JsonEncoder.encode_traits(obj, context)).encode()
 
@@ -601,23 +601,23 @@ class JsonEncoder (Encoder):
         This function decodes a binary payload data package into the represented
         Python object.
 
-        \param data Binary data block
-        \return Python object
+        @param data Binary data block
+        @return Python object
         '''
         return JsonEncoder.decode_traits(json.loads(data.decode()), context)
 
     @staticmethod
     def encode_traits(obj, context):
         '''
-        \brief Encode complex Python types into JSON compatible format
+        @brief Encode complex Python types into JSON compatible format
 
         In JSON there is no way to transmit other than the standard objects (bool, int, ..., list, map).
         So types like Item or dynamically registeres types must be converted into a map like representation
         before being encoded.
 
-        \param obj	 Python object to be encoded
-        \param context Encoding context for keeping addition information like the used shared memory segements
-        \return Python object with complex data types converted into a map like representation
+        @param obj	 Python object to be encoded
+        @param context Encoding context for keeping addition information like the used shared memory segements
+        @return Python object with complex data types converted into a map like representation
         '''
 
         if hasattr(obj, '__json__'):
@@ -697,8 +697,8 @@ class JsonEncoder (Encoder):
         into native Python objects. This function is then called to convert the dictionary objects
         which are representing dynamic types into these types.
 
-        \param obj Python object in decoded format
-        \return Python object with all intermediate types resolved
+        @param obj Python object in decoded format
+        @return Python object with all intermediate types resolved
         '''
 
         result = None
