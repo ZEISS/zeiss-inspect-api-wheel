@@ -3,8 +3,8 @@
 #
 # @brief API for storing add-on related settings persistently
 # 
-# This API allows reading/writing values into the application configuration permantly. The
-# configuration is persistant and will survive application restarts. Also, it can be accessed
+# This API allows reading/writing values into the application configuration permanently. The
+# configuration is persistent and will survive application restarts. Also, it can be accessed
 # via the applications preferences dialog.
 # 
 # The configuration entries must be defined in the add-ons `metainfo.json` file. This configuration
