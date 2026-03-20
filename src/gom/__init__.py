@@ -62,16 +62,16 @@ import gom.api.script_resources
 
 def tr(text, id=None):
     '''
-    \brief Return translated version of the given test
+    @brief Return translated version of the given test
 
     This function is added to the global namespace of the executed script and can be used
     to receive translations from the packages *.xlf files.
 
     Being a global function, this function will be available in the executed script, too.
 
-    \param text Text to be translated
-    \param id   Translation id of the text. Optional, used in the GOM internal translation process.
-    \return Translation in the current locale
+    @param text Text to be translated
+    @param id   Translation id of the text. Optional, used in the GOM internal translation process.
+    @return Translation in the current locale
     '''
     translated = text
 
@@ -86,7 +86,7 @@ def tr(text, id=None):
 
 class RequestError (RuntimeError):
     '''
-    \brief Exception type raised from an failed request
+    @brief Exception type raised from an failed request
     '''
 
     def __init__(self, description, error_code, error_log):
@@ -122,7 +122,7 @@ class RequestError (RuntimeError):
 
 class BreakError (Exception):
     '''
-    \brief Exception raised if the running script is to be terminated
+    @brief Exception raised if the running script is to be terminated
     '''
 
     def __init__(self, text=''):
@@ -134,7 +134,7 @@ class BreakError (Exception):
 
 class Indexable (object):
     '''
-    \brief Object representing a indexable proxy to some partially resolved item.
+    @brief Object representing a indexable proxy to some partially resolved item.
 
     Example: 'gom.app.project.inspection['Point cloud'].coordinate' does not provide
     a token itself. Instead, it can be used together with an index to access single
@@ -189,7 +189,7 @@ class Indexable (object):
 
 class Item (object):
     '''
-    \brief An object of this class represents a single item in the applications item space
+    @brief An object of this class represents a single item in the applications item space
 
     Each Tom::ScriptObject has a unique item id, like 'I#!1234', which is used to
     link an item to the corresponding C++ object.
@@ -297,7 +297,7 @@ class Item (object):
 
 class Array (object):
     '''
-    \brief Data array container representation
+    @brief Data array container representation
 
     An object of this type is being returned if the 'data' token is queried from
     an item, like in 'element.data.coordinate'. So after the 'data' part of the
@@ -415,7 +415,7 @@ class Array (object):
 
 class ResourceAccess (object):
     '''
-    \brief Resource accessing class
+    @brief Resource accessing class
 
     This object represents the virtual script object 'gom.app.resource' which can
     be used to access script resources. The resource is returned as a 'bytes ()' array.
@@ -446,7 +446,7 @@ class ResourceAccess (object):
 
 class Command (object):
     '''
-    \brief Command or command namespace representing object. 
+    @brief Command or command namespace representing object. 
 
     This is anything starting with 'gom.script' or 'gom.interactive'
     '''
@@ -517,7 +517,7 @@ class Command (object):
 
 class Object (object):
     '''
-    \brief Value representing a generic object instance without specialized script type interface
+    @brief Value representing a generic object instance without specialized script type interface
     '''
 
     def __init__(self, params):

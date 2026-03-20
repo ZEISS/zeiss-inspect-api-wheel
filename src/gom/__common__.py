@@ -50,7 +50,7 @@ class Constants:
 
 class Request (Enum):
     '''
-    \brief Request id
+    @brief Request id
 
     This id must match the id in the C++ part
     '''

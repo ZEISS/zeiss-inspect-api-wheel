@@ -190,7 +190,7 @@ class ScriptedDiagram (ABC, gom.__common__.Contribution):
         @param element_uuid      String containing the element uuid for internal identification
         @param event_data        Contains current mouse coordinates and button presses
 
-        @return                  Dictionary with finish_event(<script to be executed>: str, <parameters>: Any)
+        @return                  Dictionary with finish_event(executable script: str, parameters: Any)
         '''
         pass
 
@@ -265,11 +265,55 @@ class SVGDiagram(ScriptedDiagram):
     class RenderConfigToken(str, Enum):
         '''
         Token identifiers for the optional rendering configuration passed to the SVGDiagram renderer via Token.RENDER_CONFIG parameter
+
+        "debug_logging" - Enable general logging (default: False)
+
+        "debug_logging_trace" - Enable detailed result logging (default: False)
+
+        "debug_performance" - Enable performance measuring during the (overlay) rendering process (default: False)
+
+        "debug_always_show_overlay" - Always show the standard overlay with small black crosses (default: False)
+
+        "debug_auto_generated_overlay_show" - Show the hitboxes of the auto generated overlay if available (default: False)
+
+        "debug_nearest_point_show" - Show a small text with the uuid of the nearest element (default: False)
+
+        "debug_nearest_point_x" - X-coordinate of nearest element text if enabled (default: 50)
+
+        "debug_nearest_point_y" - Y-coordinate of nearest element text if enabled (default: 50)
+
+        "debug_mouse_position_show" - Show a marker on the element nearest to the mouse (if in range) (default: True)
+
+        "nearest_marker_shape" - Shape of the nearest element marker (default: "cross") (options: "cross", "square", "circle", "dot")
+
+        "nearest_marker_color" - Color of the nearest element marker (default: automatic color from diagram view)
+
+        "nearest_marker_size" - Size of the nearest element marker (default: 5)
+
+        "disable_tooltips" - Disables all element tooltips of the diagram from being displayed (default: False)
+
+        "disable_mouse_events" - Disables mouse (click) events from being processed (default: False)
+
+        "custom_hash" - If defined, use this as a hash for the caching instead of a generated one (default: undefined)
+
+        "auto_generated_overlay_use" - Automatically generate a overlay to determine the hitboxes of elements based on tagged svg groups (default: False)
+
+        "overlay_tag_prefix" - Prefix of user defined tags to filter the svg by (default: "tag-" (Token.TAG_PREFIX))
+
+        "overlay_tag_suffix" - Suffix of user defined tags to filter the svg by (default: "-tag" (Token.TAG_SUFFIX))
+
+        "overlay_expand_hitboxes" - Expand every hitbox in the auto generated overlay by this number of pixels (default: 10)
+
+        "overlay_use_mouse_position" - If TRUE, always use the mouse position instead of a point from the element coords if interacting via the auto generated overlay (default: False)
+
+        "overlay_filter_method" - Select the SVG filtering method used to generated the overlay (default: "string-parser") (options: "string-parser", "dom-parser")
+
+        "overlay_element_count" - Count of elements to be tracked by the overlay. (default: automatic)
         '''
 
         DEBUG_LOGGING = "debug_logging"
         '''
-        Enabled general logging (default: False)
+        Enable general logging (default: False)
         '''
         DEBUG_LOGGING_TRACE = "debug_logging_trace"
         '''
@@ -325,7 +369,7 @@ class SVGDiagram(ScriptedDiagram):
         '''
         NEAREST_MARKER_COLOR = "nearest_marker_color"
         '''
-        Color of the nearest element marker (default: <automatic color from diagram view>)
+        Color of the nearest element marker (default: automatic color from diagram view)
         '''
         NEAREST_MARKER_SIZE = "nearest_marker_size"
         '''
@@ -376,7 +420,7 @@ class SVGDiagram(ScriptedDiagram):
         '''
         OVERLAY_ELEMENT_COUNT = "overlay_element_count"
         '''
-        Count of elements to be tracked by the overlay. (default: <automatic>)
+        Count of elements to be tracked by the overlay. (default: automatic)
         Some SVG filtering methods can work more efficient if this given beforehand.
         
         If there are more elements in the plot than this, then not all elements might be added to the overlay correctly.
@@ -461,7 +505,7 @@ class SVGDiagram(ScriptedDiagram):
         @param element_uuid         'uuid' of the element that is being added
         @param tooltip              Optional tooltip to be displayed when hovering the element
         @param interaction_point    Interaction coordinates (x, y) for the element that is being added. 
-                                    Should be in relative coordinates to width and height of the plot (see matplotlib_tools -> get_display_coords)
+                                    Should be in relative coordinates to width and height of the plot (see matplotlib_tools - get_display_coords)
         @param custom_interaction   Flag that, if set to any truthy value, calls the event function when the specific element is interacted with.
                                     Set for the specific interaction point (if given), globally for this element otherwise
 

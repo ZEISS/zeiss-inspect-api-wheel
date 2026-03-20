@@ -64,6 +64,57 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
     The category of an element type is used to find the application side counterpart which cares for the
     functionality implementation. For example, `scriptedelement.actual` links that element type the application
     counterpart which cares for scripted actual elements and handles its creation, editing, administration, ...
+
+    **Storing custom element data**
+
+    In principle, each scripted element type consists of functions which will get input via function parameters and
+    generate output by returning a value, usually a dictionary object with named entries. For example, if a scripted
+    nominal command creates a nominal point, the `compute ()` function could return a dictionary like this:
+
+    ```
+    {
+        'position': (x, y, z),
+        'normal':   (nx, ny, nz)
+    }
+    ```
+
+    This is defined in details with the respective element type documentation. The returned values are then stored
+    in the project file and belong to the element. The keys of the returned dictionary are the data keys which are fixed
+    for each element type and element specific.
+
+    In addition to these fixed data keys, each scripted element can also store custom data entries. These entries
+    are not predefined by the element type, but can be freely defined by the scripted element implementation. This is not a
+    function result, it is more like an additional data storage which is associated with the element instance, for example
+    for caching intermediate results, storing additional metadata, ... Thus, custom element data is accessed via the `context`
+    object passed to each function. The context custom data is staged, so each stage has its own custom data storage, and the current
+    stage is always the one used for data access
+
+    Example:
+    ```
+    def compute (self, context, values):
+        # Access custom data for the current stage.
+        if 'intermediate_result' in context.data:
+            intermediate_result = context.data['intermediate_result']
+
+        else:
+            # Compute intermediate result and write it to custom data for later reuse.
+            # The type is arbitrary, as long as it is serializable. Using a dictionary here
+            # is usually a good choice.
+            intermediate_result = ... # Compute intermediate result
+            context.data = {'intermediate_result': intermediate_result,
+                            'computed': True}
+
+        # Compute final result
+        result = ...
+        return result
+    ```
+
+    The size of the data storage is not limited, but it should be kept in mind that all data must be serialized
+    and stored in the project file. Therefore, large data structures should be avoided here. Also, calls to
+    `context.data` can be relatively expensive due to serialization and deserialization, so frequent access
+    should be avoided. Also, extremely large data structures may not be storable at all due to internal limits.
+
+    The custom data can be cleared per stage by setting an empty dictionary to `context.data = {}`.
     '''
 
     class Event(str, Enum):
@@ -111,9 +162,8 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
         Constructor
 
         @param id           Unique contribution id, like `special_point`
-        @param category     Scripted element type id, like `scriptedelement.actual`
+        @param category     Scripted element category id, like `scriptedelement.actual`
         @param description  Human readable contribution description
-        @param category     Contribution category
         '''
 
         assert id, "Id must be set"
@@ -346,27 +396,27 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
                 else:
                     values[widget] = result[widget]
 
-        result = {ScriptedElement.Attribute.VALUES: values}
+        result = {ScriptedElement.Attribute.VALUES.value: values}
 
         if name is None:
-            result[ScriptedElement.Attribute.NAME] = '### element name not specified ###'
+            result[ScriptedElement.Attribute.NAME.value] = '### element name not specified ###'
         else:
-            result[ScriptedElement.Attribute.NAME] = name
+            result[ScriptedElement.Attribute.NAME.value] = name
 
         if tolerance is not None:
-            result[ScriptedElement.Attribute.TOLERANCE] = tolerance
+            result[ScriptedElement.Attribute.TOLERANCE.value] = tolerance
 
         return result
 
     @final
-    def event_handler(self, context, event_type, parameters):
+    def event_handler(self, context, event_type, parameters) -> bool:
         '''
         Wrapper function for calls to `event ()`. This function is called from the application side
         and will convert the event parameters accordingly
         '''
         return self.event(context, ScriptedElement.Event(event_type), parameters)
 
-    def event(self, context, event_type, parameters):
+    def event(self, context, event_type, parameters) -> bool:
         '''
         Contribution event handling function. This function is called when the contributions UI state changes.
         The function can then react to that event and update the UI state accordingly.
@@ -403,7 +453,7 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
         results_states = self.compute_stages(context, values)
         return self.finish(context, results_states)
 
-    def is_visible(self, context):
+    def is_visible(self, context) -> bool:
         '''
         This function is called to check if the scripted element is visible in the menus. This is usually the case if
         the selections and other precautions are setup and the user then shall be enabled to create or edit the element.
@@ -503,7 +553,7 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
         else:
             gom.log.info(message)
 
-    def check_value(self, values: Dict[str, Any], key: str, value_type: type):
+    def check_value(self, values: Dict[str, Any], key: str, expected: type):
         '''
         Check a single value for expected properties
 
@@ -518,10 +568,10 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
 
         v = values[key]
         t = type(v) if type(v) != int else float
-        if t != value_type:
-            raise TypeError(f"Expected a value of type '{t}' for '{key}', but got '{type(v)}'")
+        if t != expected:
+            raise TypeError(f"Expected a value of type '{expected}' for '{key}', but got '{type(v)}'")
 
-    def check_list(self, values: Dict[str, Any], key: str, value_type: type, length: int):
+    def check_list(self, values: Dict[str, Any], key: str, expected: type, length: int):
         '''
         Check tuple result for expected properties
 
@@ -539,11 +589,11 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
         if length and len(values[key]) != length:
             raise TypeError(f"Expected a tuple or a list of {length} values for '{key}'")
 
-        if value_type == float:
+        if expected == float:
             for v in values[key]:
                 if type(v) != float and type(v) != int:
                     raise TypeError(f"Expected values of type 'int/float' for '{key}', but got '{type(v)}'")
-        elif value_type == gom.Vec3d:
+        elif expected == gom.Vec3d:
             for v in values[key]:
                 if type(v) != gom.Vec3d:
                     if type(v) != list or len(v) != 3:
@@ -551,8 +601,8 @@ class ScriptedElement (ABC, gom.__common__.Contribution):
                             raise TypeError(f"Expected values of type 'Vec3d' for '{key}', but got '{type(v)}'")
         else:
             for v in values[key]:
-                if type(v) == value_type:
-                    raise TypeError(f"Expected values of type '{value_type}' for '{key}', but got '{type(v)}'")
+                if type(v) != expected:
+                    raise TypeError(f"Expected values of type '{expected}' for '{key}', but got '{type(v)}'")
 
     def check_target_element(self, values: Dict[str, Any]):
         '''
