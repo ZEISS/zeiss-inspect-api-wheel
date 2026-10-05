@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> This repository is now deprecated. The current zeiss-inspect-api wheel is now shipped with ZEISS INSPECT.
+> This repository is deprecated. The current zeiss-inspect-api wheel is now shipped with ZEISS INSPECT.
 
 # ZEISS INSPECT API
 
