@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This repository is now deprecated. The current zeiss-inspect-api wheel is now shipped with ZEISS INSPECT.
+
 # ZEISS INSPECT API
 
 This package provides an API to write and execute scripts in a running ZEISS INSPECT instance.
